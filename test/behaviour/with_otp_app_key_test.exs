@@ -29,6 +29,22 @@ defmodule Behaviour.WithOtpAppKey do
     assert behaviour.__knigge__(:implementation) == SomeModule
   end
 
+  test "works fine with the relevant keyword configuration being set in the Application environment" do
+    Application.put_env(:knigge, :working_behaviour, [module: SomeModule])
+
+    # Should not raise
+    behaviour =
+      defmodule_salted WorkingBehaviour do
+        use Knigge,
+          otp_app: :knigge,
+          config_key: [:working_behaviour, :module]
+      end
+
+    Application.delete_env(:knigge, :working_behaviour)
+
+    assert behaviour.__knigge__(:implementation) == SomeModule
+  end
+
   test "calling my_function/1 delegates the call to the implementation" do
     Application.put_env(:knigge, __MODULE__.AGreatBehaviour, AGreatBehaviourMock)
 
