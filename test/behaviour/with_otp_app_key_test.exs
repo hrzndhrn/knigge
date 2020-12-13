@@ -30,7 +30,7 @@ defmodule Behaviour.WithOtpAppKey do
   end
 
   test "works fine with the relevant keyword configuration being set in the Application environment" do
-    Application.put_env(:knigge, :working_behaviour, [module: SomeModule])
+    Application.put_env(:knigge, :working_behaviour, module: SomeModule)
 
     # Should not raise
     behaviour =

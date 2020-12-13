@@ -9,7 +9,7 @@ defmodule Knigge.Implementation do
 
   alias Knigge.Options
 
-  def fetch!(%Options{implementation: {:config, otp_app, [key|keys]}}) do
+  def fetch!(%Options{implementation: {:config, otp_app, [key | keys]}}) do
     otp_app
     |> Application.fetch_env!(key)
     |> get_in(keys)
