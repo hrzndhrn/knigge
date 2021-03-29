@@ -9,12 +9,34 @@ defmodule Knigge do
   `Knigge` can be `use`d directly in a behaviour, or in a separate module by
   passing the behaviour which should be "facaded" as an option.
 
-  ## Overview
+  ## Table of Contents
 
+  - [Table of Contents](#module-table-of-contents)
+  - [Installation](#module-installation)
   - [Motivation](#module-motivation)
   - [Examples](#module-examples)
+    - [Without Knigge](#module-without-knigge)
+    - [Using Knigge to reduce boilerplate](#module-using-knigge-to-reduce-boilerplate)
+      - [Specifying a `default` implementation](#module-specifying-a-default-implementation)
+      - [The `behaviour` key is optional](#module-the-behaviour-key-is-optional)
+      - [Specifying the `implementation` directly](#module-specifying-the-implementation-directly)
+    - [`defdefault` - Fallback implementations for optional callbacks](#module-defdefault-fallback-implementations-for-optional-callbacks)
   - [Options](#module-options)
-  - [Knigge and Compiler Warnings](#module-knigge-and-compiler-warnings)
+  - [Verifying your implementations - `mix knigge.verify`](#module-verifying-your-implementations-mix-knigge-verify)
+  - [Knigge and the `:test` environment](#module-knigge-and-the-test-environment)
+    - [Compiler Warnings](#module-compiler-warnings)
+
+  ## Installation
+
+  Simply add `knigge` to your list of dependencies in your `mix.exs`:
+
+      def deps do
+        [
+          {:knigge, "~> 1.4"}
+        ]
+      end
+
+  Differences between the versions are explained in [the Changelog](./CHANGELOG.md).
 
   ## Motivation
 
@@ -33,6 +55,7 @@ defmodule Knigge do
   You can read about our motivation in depth [in our devblog](https://dev.betterdoc.org/elixir/friday_project/behaviour/2019/07/30/how-we-deal-with-behaviours-and-boilerplate.html).
 
   ## Examples
+  ### Without Knigge
 
   Imagine a behaviour looking like this:
 
@@ -50,10 +73,12 @@ defmodule Knigge do
         defdelegate my_great_callback, to: @implementation
       end
 
-  With this in place you can simply reference the "real implementation" by
-  calling functions on your facade:
+  With this in place you can reference the "real implementation" by calling
+  functions on your facade:
 
       MyGreatBehaviourFacade.my_great_callback(:with_some_argument)
+
+  ### Using Knigge to reduce boilerplate
 
   `Knigge` allows you to reduce this boilerplate to the absolute minimum:
 
@@ -63,9 +88,43 @@ defmodule Knigge do
           otp_app: :my_application
       end
 
+  #### Specifying a `default` implementation
+
+  It's also possible to provide a default implementation:
+
+      defmodule MyGreatBehaviourFacade do
+        use Knigge,
+          behaviour: MyGreatBehaviour,
+          otp_app: :my_application,
+          default: MyDefaultImplementation
+      end
+
+  Compared to the "boilerplate" version above, it's as if you'd written:
+
+        @implementation Application.get_env(:my_application, __MODULE__, MyDefaultImplementation)
+
+  instead of:
+
+        @implementation Application.fetch_env!(:my_application, __MODULE__)
+
+  #### The `behaviour` key is optional
+
+  Technically even passing the `behaviour` is optional, it defaults to
+  the current `__MODULE__`. This means that the example from above could
+  be shortened even more to:
+
+      defmodule MyGreatBehaviour do
+        use Knigge, otp_app: :my_application
+
+        @callback my_great_callback(my_argument :: any()) :: any()
+      end
+
   Under the hood this compiles down to the explicit delegation visible on the top.
+
+  #### Specifying the `implementation` directly
+
   In case you don't want to fetch your implementation from the configuration,
-  `Knigge` also allows you to explicitely pass the implementation of the
+  `Knigge` also allows you to explicitly pass the implementation of the
   behaviour with the aptly named key `implementation`:
 
       defmodule MyGreatBehaviourFacade do
@@ -120,7 +179,6 @@ defmodule Knigge do
         end
       end
 
-
   ## Options
 
   `Knigge` expects either the `otp_app` key or the `implementation` key. If
@@ -132,7 +190,7 @@ defmodule Knigge do
 
   By default `Knigge` does as much work as possible at compile time. This will
   be fine most of the time. In case you want to swap out the implementation at
-  runtime - by calling `Application.put_env/3` - you can force `Knigge` to do all
+  runtime - by calling `Application.put_env/2` - you can force `Knigge` to do all
   delegation at runtime. As you might expect this incurs runtime overhead,
   since the implementing module will have to be loaded for each call.
 
@@ -141,7 +199,7 @@ defmodule Knigge do
 
   For further information about options check the `Knigge.Options` module.
 
-  ## Verifying your Implementations - `mix knigge.verify`
+  ## Verifying your implementations - `mix knigge.verify`
 
   Before version 1.2.0 `Knigge` tried to check at compile time if the implementation of your facade existed.
   Due to the way the Elixir compiler goes about compiling your modules this didn't work as expected - [checkout this page if you're interested in the details](https://hexdocs.pm/knigge/the-existence-check.html).

@@ -15,8 +15,12 @@ defmodule Knigge.Implementation do
     |> get_in(keys)
   end
 
-  def fetch!(%Options{implementation: {:config, otp_app, key}}) do
-    Application.fetch_env!(otp_app, key)
+  def fetch!(%Options{implementation: {:config, otp_app, key}, default: default}) do
+    if is_nil(default) do
+      Application.fetch_env!(otp_app, key)
+    else
+      Application.get_env(otp_app, key, default)
+    end
   end
 
   def fetch!(%Options{implementation: implementation}) do

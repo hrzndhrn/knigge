@@ -15,7 +15,11 @@ defmodule Knigge.MixProject do
       ],
       test_coverage: [tool: ExCoveralls],
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps(),
+
+      # Deps
+      dialyzer: dialyzer(),
 
       # Docs
       name: "Knigge",
@@ -40,14 +44,22 @@ defmodule Knigge.MixProject do
     ]
   end
 
+  # Aliases are shortcuts or tasks specific to the current project.
+  # See the documentation for `Mix` for more info on aliases.
+  defp aliases do
+    [
+      "check.all": ["format --check-formatted", "credo", "dialyzer"]
+    ]
+  end
+
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:bunt, "~> 0.2"},
 
       # No Runtime
-      {:credo, ">= 1.0.0", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
+      {:credo, ">= 1.0.0", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.0", only: :dev, runtime: false},
       {:ex_doc, "~> 0.23", only: :dev, runtime: false},
 
       # Test
@@ -56,6 +68,13 @@ defmodule Knigge.MixProject do
 
       # Docs
       {:inch_ex, ">= 0.0.0", only: :docs}
+    ]
+  end
+
+  defp dialyzer do
+    [
+      ignore_warnings: ".dialyzer_ignore.exs",
+      plt_file: {:no_warn, ".dialyzer/dialyzer.plt"}
     ]
   end
 
@@ -93,7 +112,7 @@ defmodule Knigge.MixProject do
 
   def package do
     [
-      files: ["lib", "mix.exs", "LICENSE*", "README*", "version"],
+      files: ["lib", "mix.exs", "CHANGELOG*", "LICENSE*", "README*", "version"],
       licenses: ["MIT"],
       links: %{
         "GitHub" => "https://github.com/sascha-wolf/knigge"

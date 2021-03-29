@@ -29,15 +29,28 @@ defmodule Behaviour.WithOtpAppKey do
     assert behaviour.__knigge__(:implementation) == SomeModule
   end
 
-  test "works fine with the relevant keyword configuration being set in the Application environment" do
-    Application.put_env(:knigge, :working_behaviour, module: SomeModule)
+  test "works fine with a default" do
+    # Should not raise
+    behaviour =
+      defmodule_salted WorkingBehaviour do
+        use Knigge,
+          otp_app: :knigge,
+          default: MyApp.SomeModule
+      end
+
+    assert behaviour.__knigge__(:implementation) == MyApp.SomeModule
+  end
+
+  test "ignores default if module is in config" do
+    Application.put_env(:knigge, :working_behaviour, SomeModule)
 
     # Should not raise
     behaviour =
       defmodule_salted WorkingBehaviour do
         use Knigge,
           otp_app: :knigge,
-          config_key: [:working_behaviour, :module]
+          config_key: :working_behaviour,
+          default: AnotherModule
       end
 
     Application.delete_env(:knigge, :working_behaviour)
